@@ -95,6 +95,8 @@ export interface AccrualState {
   rate: bigint;
   /** Ledger timestamp when accrual started for the user. */
   started_at: bigint;
+  /** Sub-hour points remainder carried between claims (contract `leftover`, #1314). */
+  leftover?: bigint;
 }
 
 /** Marketplace sales statistics for one bot tier (#432). Amounts are base units. */

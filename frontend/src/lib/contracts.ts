@@ -829,6 +829,7 @@ function parseAccrualState(raw: Record<string, unknown> | null | undefined): Acc
     lifetime_points: toBigInt(raw.lifetime_points ?? 0n, "lifetime_points"),
     rate: toBigIntOr(raw.rate, 0n, "rate"),
     started_at: toBigIntOr(raw.started_at, 0n, "started_at"),
+    leftover: toBigIntOr(raw.leftover, 0n, "leftover"),
   };
 }
 

@@ -168,7 +168,8 @@ export function useRegister() {
                       action: status.explorerUrl
                         ? {
                             label: "View",
-                            onClick: () => window.open(status.explorerUrl, "_blank"),
+                            // noopener,noreferrer: the opened explorer page must not get window.opener (#1311).
+                            onClick: () => window.open(status.explorerUrl, "_blank", "noopener,noreferrer"),
                           }
                         : undefined,
                     }
@@ -615,8 +616,11 @@ export function useAnimatedPoints(): AnimatedPoints {
         setPending(BigInt(0));
         return;
       }
+      // Include the sub-hour remainder, as the contract does (#1314).
+      const leftover = accrualState.leftover ?? BigInt(0);
       setPending(
-        (BigInt(elapsedSeconds) * ratePerHour) / BigInt(POINTS_PER_HOUR_DIVISOR),
+        (BigInt(elapsedSeconds) * ratePerHour + leftover) /
+          BigInt(POINTS_PER_HOUR_DIVISOR),
       );
     };
 
