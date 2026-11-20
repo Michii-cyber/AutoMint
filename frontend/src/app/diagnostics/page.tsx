@@ -19,11 +19,11 @@ export default function DiagnosticsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
-  const run = useCallback(async () => {
+  const run = useCallback(async (force = false) => {
     setIsLoading(true);
     setError(null);
     try {
-      setReport(await preflight(publicKey ?? undefined));
+      setReport(await preflight(publicKey ?? undefined, { force }));
     } catch (err) {
       setError(err);
     } finally {
@@ -62,7 +62,7 @@ export default function DiagnosticsPage() {
         <ErrorState
           error={error}
           title="Diagnostics failed"
-          onRetry={run}
+          onRetry={() => run(true)}
           isRetrying={false}
           data-testid="diagnostics-error-state"
         />
@@ -126,7 +126,7 @@ export default function DiagnosticsPage() {
             <div className="border-t border-liner px-5 py-4">
               <button
                 type="button"
-                onClick={run}
+                onClick={() => run(true)}
                 className="inline-flex items-center gap-2 rounded-xl border border-gold/30 bg-gold/10 px-4 py-2 text-xs font-semibold text-gold transition-all hover:bg-gold/20"
               >
                 <RotateCw className="h-3.5 w-3.5" aria-hidden="true" />

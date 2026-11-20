@@ -139,6 +139,30 @@ fn test_list_bot_negative_price_fails() {
 }
 
 #[test]
+fn test_list_bot_bad_duration_fails_with_invalid_expiry() {
+    let h = setup();
+    let seller = Address::generate(&h.env);
+    let bot_id = h.bot.mint_basic(&seller);
+    assert_eq!(
+        h.mkt
+            .try_list_bot(&seller, &bot_id, &1_000_i128, &h.token.address, &0_u64),
+        Err(Ok(MarketplaceError::InvalidExpiry))
+    );
+}
+
+#[test]
+fn test_get_min_price_uninitialized_returns_not_initialized() {
+    let env = Env::default();
+    let mkt_id = env.register_contract(None, MarketplaceContract);
+    let mkt = MarketplaceContractClient::new(&env, &mkt_id);
+    let currency = Address::generate(&env);
+    assert_eq!(
+        mkt.try_get_min_price(&currency),
+        Err(Ok(MarketplaceError::NotInitialized))
+    );
+}
+
+#[test]
 fn test_list_nonexistent_bot_fails_with_bot_not_found() {
     let h = setup();
     let seller = Address::generate(&h.env);

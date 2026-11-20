@@ -47,6 +47,7 @@ Returns the new listing ID on success.
 
 Errors:
 - `InvalidPrice`: Price must be strictly positive
+- `InvalidExpiry`: `duration_secs` is outside 1 to 90 days
 - `NotInitialized`: Marketplace not initialized
 - `BotNotFound`: Bot does not exist
 - `NotBotOwner`: Caller is not the bot's owner

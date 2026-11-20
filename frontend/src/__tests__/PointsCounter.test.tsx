@@ -42,6 +42,21 @@ describe("PointsCounter enhanced", () => {
     expect(screen.getByTestId("accrual-rate")).toHaveTextContent("+50 pts/hr");
   });
 
+  it("jumps straight to the new total when reduced motion is on (#1398)", () => {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      ...original(query),
+      matches: query.includes("reduce"),
+    })) as typeof window.matchMedia;
+    try {
+      const { rerender } = render(<PointsCounter points={0n} rate={0} />);
+      rerender(<PointsCounter points={5000n} rate={0} />);
+      expect(screen.getByTestId("total-points")).toHaveTextContent("5,000");
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+
   it("handles zero values", () => {
     render(<PointsCounter points={0} rate={0} />);
     expect(screen.getByTestId("total-points")).toHaveTextContent("0");

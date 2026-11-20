@@ -110,7 +110,7 @@ export const CONTRACT_ERROR_MESSAGES: Readonly<
     22: message("Transaction re-entered", "The marketplace blocked a nested transaction.", "Wait for the current transaction to finish."),
     23: message("Currency not supported", "This payment token is not enabled in the marketplace.", "Choose a supported currency."),
     24: message("Listing expired", "This listing has expired.", "Refresh the listings."),
-    25: message("Invalid offer expiry", "An offer must expire in the future.", "Choose a later expiry time."),
+    25: message("Invalid duration or expiry", "A listing must last 1 to 90 days, and an offer must expire in the future.", "Choose a different duration or expiry."),
     26: message("Offer not found", "That offer does not exist.", "Refresh the offers."),
     27: message("Offer inactive", "This offer has already been accepted or cancelled.", "Refresh the offers."),
     28: message("Offer expired", "This offer has expired.", "Create a new offer."),
