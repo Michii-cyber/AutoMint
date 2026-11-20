@@ -7,6 +7,7 @@ import clsx from "clsx";
 import type { BotNFT } from "@/types";
 import { TIER_META, BOT_TIER_COLORS, BOT_TIER_BG_COLORS } from "@/types";
 import { fromBaseUnits } from "@/lib/format";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 
 export interface BotRateBreakdown {
   bot: BotNFT;
@@ -29,7 +30,7 @@ export interface PointsCounterProps {
  * Animate a bigint value smoothly between updates.
  * For values above MAX_SAFE_INTEGER, animation is skipped to preserve precision.
  */
-function useAnimatedNumber(target: bigint, duration = 0.8) {
+function useAnimatedNumber(target: bigint, duration = 0.8, skip = false) {
   const [displayed, setDisplayed] = useState(target);
   const prev = useRef(target);
 
@@ -40,7 +41,7 @@ function useAnimatedNumber(target: bigint, duration = 0.8) {
     const delta = target - from;
     const deltaNum = Number(delta);
     const canAnimate =
-      Number.isSafeInteger(deltaNum) && Number.isSafeInteger(Number(from));
+      !skip && Number.isSafeInteger(deltaNum) && Number.isSafeInteger(Number(from));
 
     if (!canAnimate) {
       setDisplayed(target);
@@ -60,7 +61,7 @@ function useAnimatedNumber(target: bigint, duration = 0.8) {
     };
 
     requestAnimationFrame(step);
-  }, [target, duration]);
+  }, [target, duration, skip]);
 
   return displayed;
 }
@@ -72,7 +73,8 @@ function PointsCounterComponent({
   amtBalance,
   amtDecimals,
 }: PointsCounterProps) {
-  const animatedPoints = useAnimatedNumber(points);
+  const reducedMotion = useReduceMotion();
+  const animatedPoints = useAnimatedNumber(points, 0.8, reducedMotion);
 
   return (
     <div

@@ -446,13 +446,13 @@ impl MarketplaceContract {
     /// set an explicit floor, the default `ceil(10_000/fee_bps)` (or `1` when
     /// `fee_bps == 0`) is returned. Every accepted price guarantees
     /// `price * fee_bps / 10_000 >= 1` when `fee_bps > 0`.
-    pub fn get_min_price(env: Env, currency: Address) -> i128 {
+    pub fn get_min_price(env: Env, currency: Address) -> Result<i128, MarketplaceError> {
         let config: Config = env
             .storage()
             .instance()
             .get(&DataKey::Config)
-            .expect("Marketplace not initialized");
-        Self::min_price_for_currency(&env, &currency, config.fee_bps)
+            .ok_or(MarketplaceError::NotInitialized)?;
+        Ok(Self::min_price_for_currency(&env, &currency, config.fee_bps))
     }
 
     /// Admin-only: set the minimum price for `currency`. `min_price` must be
@@ -511,7 +511,7 @@ impl MarketplaceContract {
         const MAX_DURATION: u64 = 86_400 * 90; // 90 days
         if !(MIN_DURATION..=MAX_DURATION).contains(&duration_secs) {
             Self::clear_lock(&env);
-            return Err(MarketplaceError::InvalidPrice);
+            return Err(MarketplaceError::InvalidExpiry);
         }
 
         // A listing must have a strictly positive price.

@@ -787,7 +787,7 @@ export interface Client {
      * Whether to automatically simulate the transaction when constructing the AssembledTransaction. Default: true
      */
     simulate?: boolean;
-  }) => Promise<AssembledTransaction<i128>>
+  }) => Promise<AssembledTransaction<Result<i128>>>
 
   /**
    * Construct and simulate a pending_admin transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
@@ -1270,7 +1270,7 @@ export class Client extends ContractClient {
         "AAAAAAAAAEJTYWxlcyBzdGF0aXN0aWNzIGZvciBldmVyeSB0aWVyLCBpbiB0aWVyIG9yZGVyIChCYXNpYyAuLiBEaWFtb25kKS4AAAAAAAxtYXJrZXRfc3RhdHMAAAAAAAAAAQAAA+oAAAfQAAAACVRpZXJTdGF0cwAAAA==",
         "AAAAAAAAAE9EZWFjdGl2YXRlIGFueSBhY3RpdmUgbGlzdGluZyBmb3IgYGJvdF9pZGAuIFBlcm1pc3Npb25lZCB0byBgYm90X25mdGAgY29udHJhY3QuAAAAAAxvbl9ib3RfbW92ZWQAAAABAAAAAAAAAAZib3RfaWQAAAAAAAYAAAABAAAD6QAAA+0AAAAAAAAH0AAAABBNYXJrZXRwbGFjZUVycm9y",
         "AAAAAAAAAMBDaGFuZ2UgdGhlIHByaWNlIG9mIGFuIGFjdGl2ZSBsaXN0aW5nLiBPbmx5IHRoZSBzZWxsZXIgbWF5IGNhbGwgaXQsIGFuZAp0aGUgbmV3IHByaWNlIG11c3Qgc2F0aXNmeSB0aGUgc2FtZSBydWxlcyBhcyBgbGlzdF9ib3RgLgpPcmRlcjogZXhpc3RlbmNlIC0+IGF1dGhvcml6YXRpb24gLT4gc3RhdGUgdmFsaWRpdHkgLT4gZWZmZWN0cy4AAAAMdXBkYXRlX3ByaWNlAAAAAwAAAAAAAAAGc2VsbGVyAAAAAAATAAAAAAAAAApsaXN0aW5nX2lkAAAAAAAGAAAAAAAAAAluZXdfcHJpY2UAAAAAAAALAAAAAQAAA+kAAAPtAAAAAAAAB9AAAAAQTWFya2V0cGxhY2VFcnJvcg==",
-        "AAAAAAAAAQBSZXR1cm4gdGhlIGNvbmZpZ3VyZWQgbWluaW11bSBwcmljZSBmb3IgYGN1cnJlbmN5YC4gSWYgdGhlIGFkbWluIGhhcyBub3QKc2V0IGFuIGV4cGxpY2l0IGZsb29yLCB0aGUgZGVmYXVsdCBgY2VpbCgxMF8wMDAvZmVlX2JwcylgIChvciBgMWAgd2hlbgpgZmVlX2JwcyA9PSAwYCkgaXMgcmV0dXJuZWQuIEV2ZXJ5IGFjY2VwdGVkIHByaWNlIGd1YXJhbnRlZXMKYHByaWNlICogZmVlX2JwcyAvIDEwXzAwMCA+PSAxYCB3aGVuIGBmZWVfYnBzID4gMGAuAAAADWdldF9taW5fcHJpY2UAAAAAAAABAAAAAAAAAAhjdXJyZW5jeQAAABMAAAABAAAACw==",
+        "AAAAAAAAAQBSZXR1cm4gdGhlIGNvbmZpZ3VyZWQgbWluaW11bSBwcmljZSBmb3IgYGN1cnJlbmN5YC4gSWYgdGhlIGFkbWluIGhhcyBub3QKc2V0IGFuIGV4cGxpY2l0IGZsb29yLCB0aGUgZGVmYXVsdCBgY2VpbCgxMF8wMDAvZmVlX2JwcylgIChvciBgMWAgd2hlbgpgZmVlX2JwcyA9PSAwYCkgaXMgcmV0dXJuZWQuIEV2ZXJ5IGFjY2VwdGVkIHByaWNlIGd1YXJhbnRlZXMKYHByaWNlICogZmVlX2JwcyAvIDEwXzAwMCA+PSAxYCB3aGVuIGBmZWVfYnBzID4gMGAuAAAADWdldF9taW5fcHJpY2UAAAAAAAABAAAAAAAAAAhjdXJyZW5jeQAAABMAAAABAAAD6QAAAAsAAAfQAAAAEE1hcmtldHBsYWNlRXJyb3I=",
         "AAAAAAAAAENUaGUgYWRkcmVzcyBub21pbmF0ZWQgYnkgYHByb3Bvc2VfYWRtaW5gLCBpZiBhIHRyYW5zZmVyIGlzIHBlbmRpbmcuAAAAAA1wZW5kaW5nX2FkbWluAAAAAAAAAAAAAAEAAAPoAAAAEw==",
         "AAAAAAAAALBTdGVwIG9uZSBvZiBhbiBhZG1pbiB0cmFuc2ZlcjogdGhlIGN1cnJlbnQgYWRtaW4gbm9taW5hdGVzIGBuZXdfYWRtaW5gLgpOb3RoaW5nIGNoYW5nZXMgdW50aWwgYG5ld19hZG1pbmAgY2FsbHMgYGFjY2VwdF9hZG1pbmA7IHByb3Bvc2luZyBhZ2FpbgpyZXBsYWNlcyB0aGUgcGVuZGluZyBub21pbmF0aW9uLgAAAA1wcm9wb3NlX2FkbWluAAAAAAAAAQAAAAAAAAAJbmV3X2FkbWluAAAAAAAAEwAAAAEAAAPpAAAD7QAAAAAAAAfQAAAAEE1hcmtldHBsYWNlRXJyb3I=",
         "AAAAAAAAAHNBZG1pbi1vbmx5OiBzZXQgdGhlIG1pbmltdW0gcHJpY2UgZm9yIGBjdXJyZW5jeWAuIGBtaW5fcHJpY2VgIG11c3QgYmUKc3RyaWN0bHkgcG9zaXRpdmUuIEVtaXRzIGBtaW5fcHJpY2VfdXBkYXRlZGAuAAAAAA1zZXRfbWluX3ByaWNlAAAAAAAAAgAAAAAAAAAIY3VycmVuY3kAAAATAAAAAAAAAAltaW5fcHJpY2UAAAAAAAALAAAAAQAAA+kAAAPtAAAAAAAAB9AAAAAQTWFya2V0cGxhY2VFcnJvcg==",
@@ -1320,7 +1320,7 @@ export class Client extends ContractClient {
         market_stats: this.txFromJSON<Array<TierStats>>,
         on_bot_moved: this.txFromJSON<Result<void>>,
         update_price: this.txFromJSON<Result<void>>,
-        get_min_price: this.txFromJSON<i128>,
+        get_min_price: this.txFromJSON<Result<i128>>,
         pending_admin: this.txFromJSON<Option<string>>,
         propose_admin: this.txFromJSON<Result<void>>,
         set_min_price: this.txFromJSON<Result<void>>,

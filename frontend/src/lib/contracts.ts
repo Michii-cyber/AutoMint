@@ -1224,9 +1224,14 @@ export function __resetPreflightForTests(): void {
  *
  * Cheap reads used: registry `total_users`, bot_nft `admin`, accrual
  * `admin`, marketplace `next_listing_id`, token `decimals`.
+ *
+ * Pass `{ force: true }` to discard the cached report and re-run the checks.
  */
-export function preflight(sourceAddress?: string): Promise<PreflightReport> {
-  if (_preflightCache) return _preflightCache;
+export function preflight(
+  sourceAddress?: string,
+  options: { force?: boolean } = {},
+): Promise<PreflightReport> {
+  if (_preflightCache && !options.force) return _preflightCache;
 
   _preflightCache = (async (): Promise<PreflightReport> => {
     let source: string;
