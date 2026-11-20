@@ -114,8 +114,10 @@ describe("Poller", () => {
 
     const controller = new AbortController();
     const done = poller.run(1, controller.signal);
-    // Let it run a couple of iterations, then abort.
-    await new Promise((r) => setTimeout(r, 20));
+    // Wait until at least 3 RPC calls have completed, then abort.
+    for (let i = 0; i < 50 && rpc.calls.length < 3; i++) {
+      await new Promise((r) => setTimeout(r, 10));
+    }
     controller.abort();
     await done;
 

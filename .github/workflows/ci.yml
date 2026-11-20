@@ -88,3 +88,23 @@ jobs:
         run: npm run test:ci
       - name: Build
         run: npm run build
+
+  indexer:
+    name: Indexer (typecheck, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: indexer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: indexer/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Type-check
+        run: npm run typecheck
+      - name: Test
+        run: npm test
