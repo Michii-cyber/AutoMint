@@ -36,7 +36,7 @@ export default function DiagnosticsPage() {
   }, [run]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8">
+    <div className="mx-auto max-w-3xl px-6 py-8">
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/15">
           <Activity className="h-5 w-5 text-gold" aria-hidden="true" />
@@ -136,6 +136,6 @@ export default function DiagnosticsPage() {
           )}
         </section>
       ) : null}
-    </main>
+    </div>
   );
 }

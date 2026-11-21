@@ -54,6 +54,14 @@ describe("classifyError (AM-035)", () => {
     }
   });
 
+  it("classifies ActiveListingsExist (code 34) correctly", () => {
+    const err = new Error("Error(Contract, #34) ActiveListingsExist");
+    const result = classifyError(err);
+    expect(result.category).toBe("contract");
+    expect(result.title).toBe("Active Listings Exist");
+    expect(result.isRetryable).toBe(false);
+  });
+
   it("handles null / undefined / unknown errors gracefully", () => {
     expect(classifyError(null).category).toBe("unknown");
     expect(classifyError(undefined).category).toBe("unknown");

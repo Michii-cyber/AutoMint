@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useWalletStore, selectPublicKey } from "@/store/walletStore";
-import { getBotById, getUserBotsDetailed } from "@/lib/contracts";
+import { getBotById, getUserBotsDetailed, getBotsRange } from "@/lib/contracts";
 import { ANONYMOUS_READ_SOURCE } from "@/lib/constants";
 import type { BotNFT } from "@/types";
 import { pollWhenVisible } from "@/lib/polling";
@@ -37,16 +37,38 @@ export function useAllBotDetails(botIds: bigint[]) {
       const byId = new Map<bigint, BotNFT>();
       for (const bot of detailed) byId.set(bot.id, bot);
 
-      // Only ids the detailed call did not cover fall back to the per-id
-      // path: bots beyond the contract-side cap, or bots not owned by
-      // `source` (e.g. marketplace escrow held under the contract address).
+      // Only ids the detailed call did not cover (marketplace escrow bots or
+      // bots beyond the contract-side cap) need a secondary fetch. Use a
+      // single get_bots_range call covering the id span when the missing ids
+      // are contiguous (or nearly so); only truly isolated ids fall through to
+      // individual getBotById simulations (#1395).
       const missing = botIds.filter((id) => !byId.has(id));
       if (missing.length > 0) {
-        const fetched = await Promise.all(
-          missing.map((id) => getBotById(source, id).catch(() => null))
-        );
-        for (const bot of fetched) {
-          if (bot) byId.set(bot.id, bot);
+        const minId = missing.reduce((a, b) => (a < b ? a : b));
+        const maxId = missing.reduce((a, b) => (a > b ? a : b));
+        const span = Number(maxId - minId) + 1;
+        // A range fetch is worthwhile when it covers at least half the span
+        // and stays within the contract's 100-bot limit.
+        if (span <= 100 && span <= missing.length * 2) {
+          const ranged = await getBotsRange(minId, span, source).catch(() => [] as typeof missing extends bigint[] ? never[] : never[]);
+          for (const bot of ranged) byId.set(bot.id, bot);
+          // Any ids still missing after the range fetch fall back individually.
+          const stillMissing = missing.filter((id) => !byId.has(id));
+          if (stillMissing.length > 0) {
+            const fetched = await Promise.all(
+              stillMissing.map((id) => getBotById(source, id).catch(() => null))
+            );
+            for (const bot of fetched) {
+              if (bot) byId.set(bot.id, bot);
+            }
+          }
+        } else {
+          const fetched = await Promise.all(
+            missing.map((id) => getBotById(source, id).catch(() => null))
+          );
+          for (const bot of fetched) {
+            if (bot) byId.set(bot.id, bot);
+          }
         }
       }
 

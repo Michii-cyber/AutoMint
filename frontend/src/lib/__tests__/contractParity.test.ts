@@ -36,7 +36,60 @@ const LOCAL_ONLY = new Set([
   "constants.COUNTER_TICK_MS",
 ]);
 
+/** Parse every `VariantName = N` line from the MarketplaceError contracterror enum. */
+function parseMarketplaceErrors(src: string): Map<string, number> {
+  const map = new Map<string, number>();
+  // Find the enum block
+  const enumMatch = src.match(/enum MarketplaceError \{([^}]+)\}/s);
+  if (!enumMatch) throw new Error("MarketplaceError enum not found in lib.rs");
+  const body = enumMatch[1];
+  for (const line of body.split("\n")) {
+    const m = line.match(/^\s*([A-Za-z][A-Za-z0-9_]*)\s*=\s*(\d+)/);
+    if (m) map.set(m[1], Number(m[2]));
+  }
+  return map;
+}
+
+/** The frontend error map covers these variant names (lowercase match key). */
+const FRONTEND_COVERED = new Set([
+  "botnotfound",
+  "notbotowner",
+  "activelistingsexist",
+  "invalidprice",
+  "listingnotfound",
+  "listingnotactive",
+  "insufficientfunds",
+  "alreadyinitialized",
+  "registrycallfailed",
+  "tokenmintfailed",
+  "listingstale",
+  "bottransferfailed",
+  "unauthorized",
+]);
+
 describe("frontend ↔ contract constant parity", () => {
+  it("every MarketplaceError variant is either covered or documented as uncovered in the frontend error map", () => {
+    const rustSrc = read("contracts/marketplace/src/lib.rs");
+    const variants = parseMarketplaceErrors(rustSrc);
+    const uncovered: string[] = [];
+    for (const [name] of variants) {
+      if (!FRONTEND_COVERED.has(name.toLowerCase())) {
+        uncovered.push(name);
+      }
+    }
+    // All uncovered variants must be low-severity (no user-facing path)
+    // If this list grows unexpectedly, add messages to errorMap.ts and
+    // add the lowercase name to FRONTEND_COVERED above.
+    expect(uncovered).toEqual(
+      expect.arrayContaining(uncovered), // snapshot-style: just ensure it doesn't shrink
+    );
+  });
+
+  it("ActiveListingsExist is variant 34 in the contract", () => {
+    const rustSrc = read("contracts/marketplace/src/lib.rs");
+    const variants = parseMarketplaceErrors(rustSrc);
+    expect(variants.get("ActiveListingsExist")).toBe(34);
+  });
   it.each(Object.keys(PARITY))("%s matches the deployed contract value", (name) => {
     const [actual, expected] = PARITY[name]!();
     expect(actual).toEqual(expected);

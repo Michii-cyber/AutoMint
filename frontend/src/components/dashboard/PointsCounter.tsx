@@ -49,6 +49,7 @@ function useAnimatedNumber(target: bigint, duration = 0.8, skip = false) {
     }
 
     let start: number | null = null;
+    let rafId: number;
 
     const step = (timestamp: number) => {
       if (start === null) start = timestamp;
@@ -57,10 +58,11 @@ function useAnimatedNumber(target: bigint, duration = 0.8, skip = false) {
       const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // ease-in-out quad
       const interpolated = Math.round(deltaNum * eased);
       setDisplayed(from + BigInt(interpolated));
-      if (t < 1) requestAnimationFrame(step);
+      if (t < 1) rafId = requestAnimationFrame(step);
     };
 
-    requestAnimationFrame(step);
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
   }, [target, duration, skip]);
 
   return displayed;

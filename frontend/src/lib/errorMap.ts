@@ -108,6 +108,16 @@ export function classifyError(error: unknown): ClassifiedError {
       raw: error,
     };
   }
+  if (lower.includes("activelistingsexist")) {
+    return {
+      category: "contract",
+      title: "Active Listings Exist",
+      message:
+        "This bot still has active marketplace listings. Cancel all listings before changing the bot NFT contract.",
+      isRetryable: false,
+      raw: error,
+    };
+  }
 
   // 3b. Soroban Smart Contract Errors (AM-035)
   if (
