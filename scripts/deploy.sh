@@ -277,6 +277,41 @@ init_contract() {  # <name> <init-fn> <init-args...>
   log "$name initialized."
 }
 
+# Run a post-initialize admin call (e.g. registry set_writers) exactly once.
+# Unlike init_contract this tracks its own `<step>_done` manifest flag, because
+# the contract's `initialized` flag is already true by the time these run and
+# would make init_contract skip them silently. --force re-runs the step.
+config_step() {  # <name> <step> <fn> <args...>
+  local name="$1" step="$2" fn="$3"; shift 3
+
+  if $DRY_RUN; then
+    printf '  [dry-run] would configure %-10s (fn: %s %s)\n' "$name" "$fn" "$*"
+    return 0
+  fi
+
+  if [[ "$(manifest_get "$name" "${step}_done")" == "true" && "$FORCE" == false ]]; then
+    log "$name $step already done — skipping (use --force to re-run)"
+    return 0
+  fi
+
+  local id
+  id="$(manifest_get "$name" contract_id)"
+  if [[ -z "$id" ]]; then
+    echo "ERROR: cannot configure $name — no contract_id recorded for it." >&2
+    exit 1
+  fi
+
+  log "Configuring $name: $fn ..."
+  stellar contract invoke \
+    --id "$id" \
+    --source "$IDENTITY" \
+    --network "$NETWORK" \
+    -- "$fn" "$@"
+
+  manifest_set_json "$name" "${step}_done" true
+  manifest_touch_meta
+}
+
 # Read back a contract's `admin` after init to confirm initialization actually
 # took effect (mirrors upstream PR #585's verification steps). Non-fatal.
 verify_contract() {  # <name>
@@ -474,17 +509,22 @@ verify_contract accrual
 
 deploy_contract marketplace
 init_contract marketplace initialize --admin "$ADMIN_ADDRESS" \
-  --bot-nft "$(resolve_id bot_nft)" --fee-bps 250
+  --bot-nft "$(resolve_id bot_nft)" --fee-bps 250 --royalty-bps 0
 verify_contract marketplace
 
 # 3b. Wire the Accrual contract as the Token's admin so claims can mint AMT.
 wire_token_admin
 
 # 3c. Configure the authorized writers and marketplace address (#1342).
-init_contract registry set_writers --accrual "$(resolve_id accrual)" \
+#     The registry fails closed until set_writers is called (#1341), so this
+#     must run before any user traffic. The marketplace's initialize already
+#     seeds the payment token into its currency allowlist (#1339); the
+#     add_allowed_currency call below is an idempotent safety net.
+config_step registry set_writers set_writers --accrual "$(resolve_id accrual)" \
   --bot-nft "$(resolve_id bot_nft)"
-init_contract bot_nft set_marketplace --marketplace "$(resolve_id marketplace)"
-init_contract marketplace add_allowed_currency --currency "$(resolve_id token)"
+config_step bot_nft set_marketplace set_marketplace --marketplace "$(resolve_id marketplace)"
+config_step marketplace add_allowed_currency add_allowed_currency \
+  --currency "$(resolve_id token)"
 
 # 4. Refresh frontend env from the manifest (resumed runs re-sync .env.local).
 write_env_local
